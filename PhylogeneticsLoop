@@ -1,0 +1,12 @@
+getwd();
+samples <- list.files('phylowgs_input');
+print(samples);
+for (sample in samples){
+  
+  
+  print(sample)
+  
+  cmd =  sprintf("docker run -v C:/Research/phylowgs_input:/demo merckey/hotpot:phylowgs python /phylowgs/multievolve.py -n 4 -I inf --ssms /demo/%s/smm_data.txt --cnvs /demo/%s/cnv_data.txt -B 1000 -s 2500 -i 5000 -O /demo/results/%s/", sample, sample, sample)
+  print(cmd)
+  system(cmd)
+}
