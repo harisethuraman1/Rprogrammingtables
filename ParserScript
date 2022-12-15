@@ -1,0 +1,53 @@
+###########################################
+## STEP1: prase xml file to data table 
+###########################################
+
+## This script read the xml file from the Winther trial study
+## and extract the short-variant information
+## then save it into a data.frame (or a table)
+
+# make sure you have xml2 installed
+library(xml2)
+library(writexl)
+# set the default project parse
+setwd("C:\\Research")
+dir.create("tables",showWarnings = F) # create a subfolder so that you can save the table to this folder
+
+
+all_xml_files = list.files(path = "C:\\Research/WintherTrials/", pattern = "*.xml",full.names = T)
+  print( all_xml_files[1])
+#then you can loop through this file list
+for (xml_file in all_xml_files){
+  filename <- basename(xml_file)
+  filename <- gsub(".xml", "", filename)
+  filename <- file.path("phylowgs_input",filename)
+  dir.create(filename, showWarnings = F, recursive = TRUE)
+  pg <- read_xml(xml_file)
+  
+  # get all the <record>s from the short-variant
+  recs <- xml_find_all(pg, "//short-variant")
+  
+  # extract all its attributes into a list
+  recs.list = xml_attrs(recs)
+  
+  # use rbind to covert the r list into a data.frame
+  recs.dt = do.call(rbind,recs.list)
+  recs.df = as.data.frame(recs.dt)
+  phylo.df = data.frame(id = paste0("s", 0:(nrow(recs.df)-1)),
+                        gene = paste(recs.df$gene, recs.df$`protein-effect`,sep = ":"),
+                        #gene = gsub(":", "_", recs.df$position),
+                        a = as.integer(as.numeric(recs.df$depth)*(100-as.numeric(recs.df$`percent-reads`))/100),
+                        d = as.integer(as.numeric(recs.df$depth)),
+                        mu_r = 0.999,
+                        mu_v = 0.499)
+  # you can save it to a table file
+  # write.table(recs.dt,file.path("tables","001.short_variant.tsv"),quote=F,row.names = F,sep = '\t')
+ write.table(phylo.df, file.path(filename, "smm_data.txt"), quote = F, row.names = F, sep = '\t')
+ write.table(NULL, file.path(filename, "cnv_data.txt"), quote = F, row.names = F, sep = '\t')
+
+
+ 
+ 
+ }
+  
+  
